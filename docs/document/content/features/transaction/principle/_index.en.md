@@ -1,7 +1,7 @@
 +++
-pre = "<b>3.4.3. </b>"
+pre = "<b>3.2.2. </b>"
 title = "Principle"
-weight = 3
+weight = 2
 chapter = true
 +++
 
@@ -9,6 +9,5 @@ chapter = true
 
 This chapter mainly introduces the principles of the distributed transactions:
 
-* 2PC transaction-XA
-* Saga BASE transaction
-* Seata BASE transaction
+* 2PC transaction with XA
+* BASE transaction with Seata

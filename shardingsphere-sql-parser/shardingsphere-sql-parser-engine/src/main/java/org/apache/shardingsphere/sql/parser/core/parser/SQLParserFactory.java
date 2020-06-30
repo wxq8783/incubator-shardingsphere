@@ -25,8 +25,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.TokenStream;
-import org.apache.shardingsphere.spi.NewInstanceServiceLoader;
 import org.apache.shardingsphere.sql.parser.api.parser.SQLParser;
+import org.apache.shardingsphere.sql.parser.core.SQLParserConfigurationRegistry;
 import org.apache.shardingsphere.sql.parser.spi.SQLParserConfiguration;
 
 /**
@@ -34,10 +34,6 @@ import org.apache.shardingsphere.sql.parser.spi.SQLParserConfiguration;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SQLParserFactory {
-    
-    static {
-        NewInstanceServiceLoader.register(SQLParserConfiguration.class);
-    }
     
     /** 
      * New instance of SQL parser.
@@ -47,17 +43,12 @@ public final class SQLParserFactory {
      * @return SQL parser
      */
     public static SQLParser newInstance(final String databaseTypeName, final String sql) {
-        for (SQLParserConfiguration each : NewInstanceServiceLoader.newServiceInstances(SQLParserConfiguration.class)) {
-            if (each.getDatabaseTypeName().equals(databaseTypeName)) {
-                return createSQLParser(sql, each);
-            }
-        }
-        throw new UnsupportedOperationException(String.format("Cannot support database type '%s'", databaseTypeName));
+        return createSQLParser(sql, SQLParserConfigurationRegistry.getInstance().getSQLParserConfiguration(databaseTypeName));
     }
     
-    @SneakyThrows
+    @SneakyThrows(ReflectiveOperationException.class)
     private static SQLParser createSQLParser(final String sql, final SQLParserConfiguration configuration) {
-        Lexer lexer = configuration.getLexerClass().getConstructor(CharStream.class).newInstance(CharStreams.fromString(sql));
+        Lexer lexer = (Lexer) configuration.getLexerClass().getConstructor(CharStream.class).newInstance(CharStreams.fromString(sql));
         return configuration.getParserClass().getConstructor(TokenStream.class).newInstance(new CommonTokenStream(lexer));
     }
 }
